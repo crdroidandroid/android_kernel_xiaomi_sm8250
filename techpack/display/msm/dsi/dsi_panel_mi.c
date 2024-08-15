@@ -3728,7 +3728,7 @@ int dsi_panel_set_disp_param(struct dsi_panel *panel, u32 param)
 			cancel_delayed_work(&mi_cfg->enter_aod_delayed_work);
 			if (fod_lhbm_level == 1) {
 				pr_info("lhbm white 1000nit On\n");
-				mi_dsi_update_lhbm_cmd_87reg(panel, DSI_CMD_SET_MI_FOD_LHBM_WHITE_1000NIT, mi_cfg->last_bl_level);
+				mi_dsi_update_lhbm_cmd_87reg(panel, DSI_CMD_SET_MI_FOD_LHBM_WHITE_1000NIT, (panel->hbm_mode ? panel->bl_config.bl_max_level : mi_cfg->last_bl_level));
 				if (panel->power_mode == SDE_MODE_DPMS_LP1 ||panel->power_mode == SDE_MODE_DPMS_LP2){
 					switch (mi_cfg->doze_brightness_state) {
 						case DOZE_BRIGHTNESS_HBM:
@@ -3752,7 +3752,7 @@ int dsi_panel_set_disp_param(struct dsi_panel *panel, u32 param)
 				rc = dsi_panel_tx_cmd_set(panel, DSI_CMD_SET_MI_FOD_LHBM_WHITE_1000NIT);
 			} else if (fod_lhbm_level == 2) {
 				pr_info("lhbm white 110nit On\n");
-				mi_dsi_update_lhbm_cmd_87reg(panel, DSI_CMD_SET_MI_FOD_LHBM_WHITE_110NIT, mi_cfg->last_bl_level);
+				mi_dsi_update_lhbm_cmd_87reg(panel, DSI_CMD_SET_MI_FOD_LHBM_WHITE_110NIT, (panel->hbm_mode ? panel->bl_config.bl_max_level : mi_cfg->last_bl_level));
 				if (panel->power_mode == SDE_MODE_DPMS_LP1 ||panel->power_mode == SDE_MODE_DPMS_LP2){
 					switch (mi_cfg->doze_brightness_state) {
 						case DOZE_BRIGHTNESS_HBM:
@@ -3777,7 +3777,7 @@ int dsi_panel_set_disp_param(struct dsi_panel *panel, u32 param)
 				rc = dsi_panel_tx_cmd_set(panel, DSI_CMD_SET_MI_FOD_LHBM_WHITE_110NIT);
 			} else if (fod_lhbm_level == 3) {
 				pr_info("lhbm green 500nit On\n");
-				mi_dsi_update_lhbm_cmd_87reg(panel, DSI_CMD_SET_MI_FOD_LHBM_GREEN_500NIT, mi_cfg->last_bl_level);
+				mi_dsi_update_lhbm_cmd_87reg(panel, DSI_CMD_SET_MI_FOD_LHBM_GREEN_500NIT, (panel->hbm_mode ? panel->bl_config.bl_max_level : mi_cfg->last_bl_level));
 				rc = dsi_panel_tx_cmd_set(panel, DSI_CMD_SET_MI_FOD_LHBM_GREEN_500NIT);
 			}
 			mi_cfg->local_hbm_cur_status = true;
