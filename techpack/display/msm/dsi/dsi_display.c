@@ -5072,6 +5072,92 @@ error:
 	return rc;
 }
 
+static ssize_t sysfs_dc_read(struct device *dev,
+		struct device_attribute *attr, char *buf)
+{
+	struct dsi_display *display = dev_get_drvdata(dev);
+
+	if (!display) {
+		pr_err("Invalid display\n");
+		return -EINVAL;
+	}
+
+	return scnprintf(buf, PAGE_SIZE, "%d\n", display->panel->dc_dimming_mode ? 1 : 0);
+}
+
+static ssize_t sysfs_dc_write(struct device *dev,
+	    struct device_attribute *attr, const char *buf, size_t count)
+{
+	struct dsi_display *display = dev_get_drvdata(dev);
+	bool dc_dimming_mode;
+	int rc;
+
+	if (!display) {
+		pr_err("Invalid display\n");
+		return -EINVAL;
+	}
+
+	rc = kstrtobool(buf, &dc_dimming_mode);
+	if (rc) {
+		pr_err("Failed to parse value, rc=%d\n", rc);
+		return rc;
+	}
+
+	if (display->panel->dc_dimming_mode == dc_dimming_mode)
+		return count;
+
+	display->panel->dc_dimming_mode = dc_dimming_mode;
+
+	return !rc ? count : rc;
+}
+
+static DEVICE_ATTR(dc, 0644,
+			sysfs_dc_read,
+			sysfs_dc_write);
+
+static ssize_t sysfs_hbm_read(struct device *dev,
+		struct device_attribute *attr, char *buf)
+{
+	struct dsi_display *display = dev_get_drvdata(dev);
+
+	if (!display) {
+		pr_err("Invalid display\n");
+		return -EINVAL;
+	}
+
+	return scnprintf(buf, PAGE_SIZE, "%d\n", display->panel->hbm_mode);
+}
+
+static ssize_t sysfs_hbm_write(struct device *dev,
+	    struct device_attribute *attr, const char *buf, size_t count)
+{
+	struct dsi_display *display = dev_get_drvdata(dev);
+	bool hbm_mode;
+	int rc;
+
+	if (!display) {
+		pr_err("Invalid display\n");
+		return -EINVAL;
+	}
+
+	rc = kstrtobool(buf, &hbm_mode);
+	if (rc) {
+		pr_err("Failed to parse value, rc=%d\n", rc);
+		return rc;
+	}
+
+	if (display->panel->hbm_mode == hbm_mode)
+		return count;
+
+	display->panel->hbm_mode = hbm_mode;
+
+	return !rc ? count : rc;
+}
+
+static DEVICE_ATTR(hbm, 0644,
+			sysfs_hbm_read,
+			sysfs_hbm_write);
+
 static ssize_t sysfs_fod_ui_read(struct device *dev,
 	struct device_attribute *attr, char *buf)
 {
@@ -5095,6 +5181,8 @@ static DEVICE_ATTR(fod_ui, 0444,
 
 static struct attribute *display_fs_attrs[] = {
 	&dev_attr_fod_ui.attr,
+	&dev_attr_hbm.attr,
+	&dev_attr_dc.attr,
 	NULL,
 };
 
