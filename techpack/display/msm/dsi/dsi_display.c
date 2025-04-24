@@ -5154,7 +5154,12 @@ static ssize_t sysfs_hbm_write(struct device *dev,
 	if (display->panel->hbm_mode == hbm_mode)
 		return count;
 
-	display->panel->hbm_mode = hbm_mode;
+	rc = dsi_panel_apply_hbm_mode(display->panel, hbm_mode);
+	if (rc)
+		pr_err("Failed to %s HBM mode, rc=%d\n",
+		       hbm_mode ? "enable" : "disable", rc);
+	else
+		display->panel->hbm_mode = hbm_mode;
 
 	return !rc ? count : rc;
 }

@@ -936,6 +936,9 @@ int dsi_panel_set_backlight(struct dsi_panel *panel, u32 bl_lvl)
 	if (panel->host_config.ext_bridge_mode)
 		return 0;
 
+	if (panel->hbm_mode && !panel->mi_cfg.in_aod)
+		goto skip_bl_adj;
+
 	DSI_DEBUG("backlight type:%d lvl:%d\n", bl->type, bl_lvl);
 
 	/* lmi panel must restore to last_bl_level to avoid flash high
@@ -1022,6 +1025,7 @@ int dsi_panel_set_backlight(struct dsi_panel *panel, u32 bl_lvl)
 		DSI_INFO("DC off\n");
 		mi_cfg->dc_enable = false;
 	}
+skip_bl_adj:
 	mi_cfg->last_bl_level = bl_lvl;
 	if (bl_lvl)
 		mi_cfg->last_nonzero_bl_level = bl_lvl;
@@ -4798,7 +4802,9 @@ exit_skip:
 exit:
 	mutex_unlock(&panel->panel_lock);
 
-	if (panel->dc_dimming_mode)
+	if (panel->hbm_mode)
+		dsi_panel_apply_hbm_mode(panel, true);
+	else if (panel->dc_dimming_mode)
 		dsi_panel_apply_dc_dimming_mode(panel, true);
 
 	return rc;
@@ -5222,7 +5228,9 @@ int dsi_panel_enable(struct dsi_panel *panel)
 
 	mutex_unlock(&panel->panel_lock);
 
-	if (panel->dc_dimming_mode)
+	if (panel->hbm_mode)
+		dsi_panel_apply_hbm_mode(panel, true);
+	else if (panel->dc_dimming_mode)
 		dsi_panel_apply_dc_dimming_mode(panel, true);
 
 	return rc;
@@ -5495,6 +5503,9 @@ int dsi_panel_apply_dc_dimming_mode(struct dsi_panel *panel, bool mode)
 {
 	int rc = 0;
 
+	if (panel->hbm_mode)
+		return rc;
+
 	if (mode)
 		rc = dsi_panel_set_disp_param(panel, DISPPARAM_DC_ON);
 	else
@@ -5503,3 +5514,21 @@ int dsi_panel_apply_dc_dimming_mode(struct dsi_panel *panel, bool mode)
 	return rc;
 }
 
+int dsi_panel_apply_hbm_mode(struct dsi_panel *panel, bool mode)
+{
+	int rc = 0;
+
+	if (mode) {
+		if (panel->dc_dimming_mode)
+			rc = dsi_panel_set_disp_param(panel, DISPPARAM_DC_OFF);
+		rc = dsi_panel_set_disp_param(panel, DISPPARAM_HBM_ON);
+	} else  {
+		rc = dsi_panel_set_disp_param(panel, DISPPARAM_HBM_OFF);
+		if (panel->dc_dimming_mode)
+			rc = dsi_panel_set_disp_param(panel, DISPPARAM_DC_ON);
+		else
+			rc = dsi_panel_set_disp_param(panel, DISPPARAM_DC_OFF);
+	}
+
+	return rc;
+}
