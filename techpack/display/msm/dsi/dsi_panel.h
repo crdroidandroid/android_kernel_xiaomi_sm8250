@@ -386,4 +386,6 @@ int dsi_panel_set_fod_hbm(struct dsi_panel *panel, bool status);
 
 u32 dsi_panel_get_fod_dim_alpha(struct dsi_panel *panel);
 
+int dsi_panel_apply_dc_dimming_mode(struct dsi_panel *panel, bool mode);
+
 #endif /* _DSI_PANEL_H_ */

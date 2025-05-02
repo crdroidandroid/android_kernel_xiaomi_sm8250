@@ -5105,8 +5105,13 @@ static ssize_t sysfs_dc_write(struct device *dev,
 
 	if (display->panel->dc_dimming_mode == dc_dimming_mode)
 		return count;
-
-	display->panel->dc_dimming_mode = dc_dimming_mode;
+		
+	rc = dsi_panel_apply_dc_dimming_mode(display->panel, dc_dimming_mode);
+	if (rc)
+		pr_err("Failed to %s DC dimming mode, rc=%d\n",
+		       dc_dimming_mode ? "enable" : "disable", rc);
+	else
+		display->panel->dc_dimming_mode = dc_dimming_mode;
 
 	return !rc ? count : rc;
 }

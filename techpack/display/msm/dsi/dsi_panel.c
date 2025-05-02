@@ -919,6 +919,8 @@ int dsi_panel_set_fod_hbm(struct dsi_panel *panel, bool status)
 		dsi_panel_set_disp_param(panel, DISPPARAM_HBM_FOD_ON|lhbm_target);
 	} else {
 		dsi_panel_set_disp_param(panel, DISPPARAM_HBM_FOD_OFF);
+		if (panel->dc_dimming_mode)
+			dsi_panel_dc_switch(panel);
 	}
 
 	return rc;
@@ -4670,6 +4672,9 @@ int dsi_panel_set_lp1(struct dsi_panel *panel)
 		DSI_ERR("invalid params\n");
 		return -EINVAL;
 	}
+	
+	if (panel->dc_dimming_mode)
+		dsi_panel_apply_dc_dimming_mode(panel, false);
 
 	mutex_lock(&panel->panel_lock);
 	if (!panel->panel_initialized)
@@ -4712,6 +4717,9 @@ int dsi_panel_set_lp2(struct dsi_panel *panel)
 		DSI_ERR("invalid params\n");
 		return -EINVAL;
 	}
+	
+	if (panel->dc_dimming_mode)
+		dsi_panel_apply_dc_dimming_mode(panel, false);
 
 	mutex_lock(&panel->panel_lock);
 	if (!panel->panel_initialized)
@@ -4789,6 +4797,10 @@ exit_skip:
 	mi_cfg->fod_to_nolp = false;
 exit:
 	mutex_unlock(&panel->panel_lock);
+
+	if (panel->dc_dimming_mode)
+		dsi_panel_apply_dc_dimming_mode(panel, true);
+
 	return rc;
 }
 
@@ -5209,6 +5221,10 @@ int dsi_panel_enable(struct dsi_panel *panel)
 	mi_cfg->cabc_current_status = 0;
 
 	mutex_unlock(&panel->panel_lock);
+
+	if (panel->dc_dimming_mode)
+		dsi_panel_apply_dc_dimming_mode(panel, true);
+
 	return rc;
 }
 
@@ -5474,3 +5490,16 @@ error:
 	mutex_unlock(&panel->panel_lock);
 	return rc;
 }
+
+int dsi_panel_apply_dc_dimming_mode(struct dsi_panel *panel, bool mode)
+{
+	int rc = 0;
+
+	if (mode)
+		rc = dsi_panel_set_disp_param(panel, DISPPARAM_DC_ON);
+	else
+		rc = dsi_panel_set_disp_param(panel, DISPPARAM_DC_OFF);
+
+	return rc;
+}
+
