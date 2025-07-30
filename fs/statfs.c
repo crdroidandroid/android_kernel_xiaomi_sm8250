@@ -78,7 +78,7 @@ int vfs_statfs(const struct path *path, struct kstatfs *buf)
 	struct mount *mnt;
 
 	mnt = real_mount(path->mnt);
-	if (likely(current->susfs_task_state & TASK_STRUCT_NON_ROOT_USER_APP_PROC)) {
+	if (likely(susfs_is_current_non_root_user_app_proc())) {
 		for (; mnt->mnt_id >= DEFAULT_SUS_MNT_ID; mnt = mnt->mnt_parent) {}
 	}
 	error = statfs_by_dentry(mnt->mnt.mnt_root, buf);
@@ -109,22 +109,6 @@ retry:
 			goto retry;
 		}
 	}
-#ifdef CONFIG_KSU_SUSFS_SUS_OVERLAYFS
-	/* - When mounting overlay, the f_flags are set with 'ro' and 'relatime',
-	 *   but this is an abnormal status, as when we inspect the output from mountinfo,
-	 *   we will find that all partitions set with 'ro' will have 'noatime' set as well.
-	 * - But what is strange here is that the vfsmnt f_flags of the lowest layer has corrent f_flags set,
-	 *   and still it is always changed to 'relatime' instead of 'noatime' for the final result,
-	 *   I can't think of any other reason to explain about this, maybe the f_flags is set by its own
-	 *   filesystem implementation but not the one from overlayfs.
-	 * - Anyway we just cannot use the retrieved f_flags from ovl_getattr() of overlayfs,
-	 *   we need to run one more check for user_statfs() and fd_statfs() by ourselves.
-	 */
-	if (unlikely((st->f_flags & ST_RDONLY) && (st->f_flags & ST_RELATIME))) {
-		st->f_flags &= ~ST_RELATIME;
-		st->f_flags |= ST_NOATIME;
-	}
-#endif
 	return error;
 }
 
@@ -136,12 +120,6 @@ int fd_statfs(int fd, struct kstatfs *st)
 		error = vfs_statfs(&f.file->f_path, st);
 		fdput(f);
 	}
-#ifdef CONFIG_KSU_SUSFS_SUS_OVERLAYFS
-	if (unlikely((st->f_flags & ST_RDONLY) && (st->f_flags & ST_RELATIME))) {
-		st->f_flags &= ~ST_RELATIME;
-		st->f_flags |= ST_NOATIME;
-	}
-#endif
 	return error;
 }
 
