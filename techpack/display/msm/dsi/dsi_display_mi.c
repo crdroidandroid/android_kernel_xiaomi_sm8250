@@ -94,6 +94,39 @@ int dsi_display_hbm_set_disp_param(struct drm_connector *connector,
 	return rc;
 }
 
+ssize_t dsi_display_read_dynamic_fps(struct drm_connector *connector,
+			char *buf)
+{
+	struct dsi_display *display = NULL;
+	struct dsi_bridge *c_bridge = NULL;
+	struct dsi_display_mode *cur_mode = NULL;
+	ssize_t ret = 0;
+
+	if (!connector || !connector->encoder || !connector->encoder->bridge) {
+		pr_err("Invalid connector/encoder/bridge ptr\n");
+		return -EINVAL;
+	}
+
+	c_bridge =  to_dsi_bridge(connector->encoder->bridge);
+	display = c_bridge->display;
+	if (!display || !display->panel) {
+		pr_err("Invalid display/panel ptr\n");
+		return -EINVAL;
+	}
+
+	mutex_lock(&display->display_lock);
+	cur_mode = display->panel->cur_mode;
+	if (cur_mode) {
+		ret = snprintf(buf, PAGE_SIZE, "%d\n", cur_mode->timing.refresh_rate);
+
+	} else {
+		ret = snprintf(buf, PAGE_SIZE, "%s\n", "null");
+	}
+	mutex_unlock(&display->display_lock);
+
+	return ret;
+}
+
 int dsi_display_esd_irq_ctrl(struct dsi_display *display,
 		bool enable)
 {

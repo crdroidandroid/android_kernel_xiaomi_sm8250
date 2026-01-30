@@ -101,6 +101,9 @@ void drm_sysfs_connector_remove(struct drm_connector *connector);
 
 void drm_sysfs_lease_event(struct drm_device *dev);
 
+ssize_t dsi_display_read_dynamic_fps(struct drm_connector *connector,
+				char *buf);
+
 /* drm_gem.c */
 int drm_gem_init(struct drm_device *dev);
 void drm_gem_destroy(struct drm_device *dev);
