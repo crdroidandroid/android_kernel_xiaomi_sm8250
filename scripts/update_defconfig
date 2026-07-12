@@ -114,7 +114,7 @@ if [ -n  "$*" ]; then
   case "$ret" in
     *"error"*|*"ERROR"*) echo "ERROR: $ret"; exit 1;;
   esac
-  mv "$OUT_DIR"/defconfig ./arch/arm64/configs/"$1"_defconfig
+  mv "$OUT_DIR"/defconfig ./arch/arm64/configs/vendor/"$1"_defconfig
 
 read -r -d '' KERNEL_COMMIT_MESSAGE << EOM
 ARM64: configs: ${DEVICE}: update auto-generated defconfig for ${DEVICE}
@@ -207,7 +207,7 @@ EOM
       case "$ret" in
         *"error"*|*"ERROR"*) echo "ERROR: $ret"; exit 1;;
       esac
-      mv "$OUT_DIR"/defconfig ./arch/arm64/configs/"$device"_defconfig
+      mv "$OUT_DIR"/defconfig ./arch/arm64/configs/vendor/"$device"_defconfig
   done
 fi
 
